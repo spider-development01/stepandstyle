@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&S | Shopping Cart</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="setupGlobal(); loadCartPage()">
+
+        <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-header">
+            <div class="logo">S&S.</div>
+            <div class="close-btn" id="closeBtn">&times;</div>
+        </div>
+        <div class="menu-content">
+            <ul class="mobile-links">
+                <li style="--i:1"><a href="mens.html">MENS</a></li>
+                <li style="--i:2"><a href="womens.html">WOMENS</a></li>
+                <li style="--i:3"><a href="kids.html">KIDS</a></li>
+                <li style="--i:4"><a href="cart.html">CART</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. UNIVERSAL FLOATING APP DOCK (Shows Everywhere) -->
+    <div class="bottom-nav">
+        <!-- Menu Trigger -->
+        <div class="nav-item" id="menuBtn">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <span>SHOP</span>
+        </div>
+
+        <!-- Profile -->
+        <a href="account.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>PROFILE</span>
+        </a>
+
+        <!-- BRAND LOGO (Center Anchor) -->
+        <a href="index.html" class="dock-logo">S&S</a>
+
+        <!-- Orders / Archive -->
+        <a href="orders.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>
+            <span>ORDERS</span>
+        </a>
+
+        <!-- Cart -->
+        <a href="cart.html" class="nav-item">
+            <div class="cart-badge cart-count">0</div>
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span>CART</span>
+        </a>
+    </div>
+
+    <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-top: 30px;">
+        
+        <!-- Cart Items List -->
+        <div class="bento-card" style="background: white;">
+            <h1 style="margin-bottom: 20px;">YOUR BAG.</h1>
+            <div id="cart-items"></div>
+        </div>
+
+        <!-- Checkout Summary -->
+        <div class="bento-card" style="background: var(--secondary); height: fit-content;">
+            <h2>SUMMARY</h2>
+            <h1 id="cart-total" style="font-size: 3rem; margin: 15px 0;">₹0</h1>
+            <p style="font-weight: 600; margin-bottom: 20px;">Taxes and shipping calculated at checkout.</p>
+            
+            <form onsubmit="processCartCheckout(event)">
+                <label>Full Name</label><input type="text" id="cc-name" required>
+                <label>Email</label><input type="email" id="cc-email" required>
+                <label>Address</label><textarea id="cc-address" rows="3" required></textarea>
+                <button type="submit" class="btn-main" style="width: 100%; font-size: 1.2rem; padding: 20px;">SECURE CHECKOUT</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function loadCartPage() {
+            const cart = getCart();
+            const container = document.getElementById('cart-items');
+            
+            // Auto-fill user if logged in
+            const user = JSON.parse(localStorage.getItem('S&S_user'));
+            if(user) {
+                document.getElementById('cc-name').value = user.name || '';
+                document.getElementById('cc-email').value = user.email || '';
+            }
+
+            if(cart.length === 0) {
+                container.innerHTML = '<p style="font-weight: 800; color: var(--accent);">Your bag is empty. Hit the streets and find your fit.</p>';
+                return;
+            }
+
+            let total = 0;
+            container.innerHTML = cart.map((item, index) => {
+                total += item.price;
+                return `
+                <div style="display:flex; gap:15px; margin-bottom: 20px; border: var(--border); padding: 15px; border-radius: 12px; box-shadow: 4px 4px 0px var(--black);">
+                    <img src="${item.image}" style="width: 80px; height: 100px; object-fit: cover; border-radius: 8px;">
+                    <div style="flex:1;">
+                        <h3>${item.name}</h3>
+                        <p style="font-weight:800; color:var(--accent);">₹${item.price.toLocaleString('en-IN')}</p>
+                        <p style="font-size:12px; font-weight:600; margin-top:5px;">UK ${item.size} | Color: ${item.color}</p>
+                        <button onclick="removeFromCart(${index})" style="margin-top:10px; background:none; border:none; color:red; font-weight:800; cursor:pointer;">REMOVE</button>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            document.getElementById('cart-total').innerText = `₹${total.toLocaleString('en-IN')}`;
+        }
+
+        function removeFromCart(index) {
+            let cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+            loadCartPage();
+        }
+
+        async function processCartCheckout(e) {
+            e.preventDefault();
+            const cart = getCart();
+            if(cart.length === 0) return alert("Cart is empty!");
+
+            const name = document.getElementById('cc-name').value;
+            const email = document.getElementById('cc-email').value;
+            const address = document.getElementById('cc-address').value;
+
+            // Send order to Supabase for EVERY item in cart
+            for(let item of cart) {
+                await api('orders', 'POST', {
+                    product_id: item.id,
+                    customer_name: name,
+                    customer_email: email,
+                    address: address,
+                    size_selected: item.size,
+                    color_selected: item.color
+                });
+            }
+
+            // Clear Cart & Show Success
+            localStorage.removeItem('S&S_user_cart'); // Failsafe
+            saveCart([]); 
+            
+            document.body.innerHTML = `
+                <div class="container" style="display:flex; justify-content:center; align-items:center; min-height:80vh;">
+                    <div class="bento-card" style="text-align:center; background:var(--purple); width: 100%; max-width: 600px;">
+                        <h1 style="font-size:clamp(3rem, 6vw, 5rem);">CART CLEARED.</h1>
+                        <p style="font-size: 1.2rem; margin: 20px 0; font-weight: 600;">Your order has been officially processed.</p>
+                        <a href="index.html" class="btn-main">RETURN HOME</a>
+                    </div>
+                </div>`;
+        }
+    </script>
+</body>
+</html>

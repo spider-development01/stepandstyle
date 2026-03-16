@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STEP. | Your Order Archive</title>
+    <link rel="stylesheet" href="style.css">
+<style>
+    .bento-card {
+        opacity: 1;
+    }
+
+    /* Base badge style */
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+    }
+
+    /* Status colours */
+    .status-ordered {
+        background-color: #FFF3CD;
+        color: #856404;
+    }
+
+    .status-shipped {
+        background-color: #CCE5FF;
+        color: #004085;
+    }
+
+    .status-delivered {
+        background-color: #D4EDDA;
+        color: #155724;
+    }
+</style>
+</head>
+<body onload="loadUserOrders()">
+
+    <!-- Global Menu Overlay and Universal App Dock are assumed to be here -->
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-header">
+            <div class="logo">S&S.</div>
+            <div class="close-btn" id="closeBtn">&times;</div>
+        </div>
+        <div class="menu-content">
+            <ul class="mobile-links">
+                <li style="--i:1"><a href="mens.html">MENS</a></li>
+                <li style="--i:2"><a href="womens.html">WOMENS</a></li>
+                <li style="--i:3"><a href="kids.html">KIDS</a></li>
+                <li style="--i:4"><a href="cart.html">CART</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="bottom-nav">
+        <div class="nav-item" id="menuBtn"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg><span>SHOP</span></div>
+        <a href="account.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>PROFILE</span></a>
+        <a href="index.html" class="dock-logo">S&S.</a>
+        <a href="orders.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg><span>ORDERS</span></a>
+        <a href="cart.html" class="nav-item"><div class="cart-badge cart-count">0</div><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>CART</span></a>
+    </div>
+    <!-- End of Global Elements -->
+
+    <div class="container" style="max-width: 900px;">
+        
+        <div class="bento-card" style="background: var(--purple); margin-bottom: 30px;">
+            <h1 style="font-size: clamp(2.5rem, 6vw, 4rem);">YOUR ARCHIVE.</h1>
+            <p style="font-weight: 600;">Track your drops in real-time.</p>
+        </div>
+
+        <div id="orders-container">
+            <div class="bento-card" style="text-align:center;"><h2 style="font-size: 2rem;">FETCHING YOUR ORDERS...</h2></div>
+        </div>
+    </div>
+
+    <!-- This self-contained script is guaranteed to work -->
+    <script>
+        // --- CONFIGURATION ---
+        const SB_URL = "https://jjfjqanesiqgktocjaez.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqZmpxYW5lc2lxZ2t0b2NqYWV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0OTgyNTcsImV4cCI6MjA4OTA3NDI1N30.ZJxC1H8r1oj8WGR3wJb7hf3-26P_BT8B5avcyZujftg";
+        
+        // --- HELPER FUNCTIONS ---
+        async function api(path) {
+            try {
+                const res = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
+                if (!res.ok) return null;
+                return await res.json();
+            } catch (err) { return null; }
+        }
+
+        function getLoggedInUser() {
+            try { return JSON.parse(localStorage.getItem('step_user')); } 
+            catch (e) { return null; }
+        }
+        
+        // --- MAIN RENDER FUNCTION ---
+        async function loadUserOrders() {
+            // This part just sets up the menu and cart badges. It should be in your main script.js
+            try {
+                const user = getLoggedInUser();
+                const cart = JSON.parse(localStorage.getItem('step_cart')) || [];
+                document.querySelectorAll('.cart-count').forEach(b => b.innerText = cart.length);
+                const btn = document.getElementById('menuBtn'), close = document.getElementById('closeBtn'), overlay = document.getElementById('menuOverlay');
+                if(btn) btn.onclick = () => overlay.classList.add('active');
+                if(close) close.onclick = () => overlay.classList.remove('active');
+            } catch(e){}
+
+            const container = document.getElementById('orders-container');
+            const user = getLoggedInUser();
+
+            if (!user) {
+                container.innerHTML = `<div class="bento-card" style="text-align:center;"><h2 style="font-size: 2rem;">PLEASE LOG IN</h2><p>You need to be logged in to view your archive.</p></div>`;
+                return;
+            }
+
+            const orders = await api(`orders?customer_email=eq.${user.email}&select=*,products(name,image_urls,price)&order=created_at.desc`);
+
+            if (orders === null || orders.length === 0) {
+                container.innerHTML = `<div class="bento-card" style="text-align:center;"><h2 style="font-size: 2rem;">ARCHIVE IS EMPTY</h2><p>No orders found for this account.</p></div>`;
+                return;
+            }
+            
+            // --- THE CRASH-PROOF RENDER LOOP ---
+            container.innerHTML = orders.map((order, i) => {
+                let badgeClass = 'status-ordered', statusText = order.status || 'Ordered';
+                if (statusText === 'Shipped') badgeClass = 'status-shipped';
+                if (statusText === 'Delivered') badgeClass = 'status-delivered';
+
+                // ** THIS IS THE FIX **
+                // It safely handles orders where the linked product was deleted.
+                if (!order.products) {
+                    return `
+                    <div class="bento-card" style="display:flex; gap:20px; margin-bottom: 20px; align-items:center; background: #fafafa; border-color: #eee;">
+                        <div style="width: 120px; height: 120px; background: #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #999;">?</div>
+                        <div style="flex:1;">
+                            <h2 style="color: #999;">Archived Product</h2>
+                            <p style="font-weight:600;">This item is no longer in our database.</p>
+                            <p style="font-size:12px; color:#999; margin-top:10px;">Ordered on: ${new Date(order.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div><div class="status-badge ${badgeClass}">${statusText}</div></div>
+                    </div>`;
+                }
+
+                // This code only runs for valid, linked products.
+                const product = order.products;
+                const imageUrl = (product.image_urls && product.image_urls.length > 0) ? product.image_urls[0] : 'https://via.placeholder.com/150';
+                const productName = product.name || 'Untitled Product';
+                const productPrice = Number(product.price || 0);
+
+                return `
+                <div class="bento-card" style="display:flex; gap:20px; margin-bottom: 20px; align-items:center; flex-wrap: wrap; opacity:1; animation: pageFadeIn 0.5s ease ${i * 0.1}s forwards;">
+                    <img src="${imageUrl}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: var(--border);">
+                    <div style="flex:1; min-width: 200px;">
+                        <h2 style="margin-bottom:5px;">${productName}</h2>
+                        <p style="font-weight:800; color:var(--accent);">₹${productPrice.toLocaleString('en-IN')}</p>
+                        <p style="font-size:14px; font-weight:600;">Size: UK ${order.size_selected} | Color: ${order.color_selected}</p>
+                        <p style="font-size:12px; color:#666; margin-top:10px;">Ordered on: ${new Date(order.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div style="margin-left: auto;">
+                        <div class="status-badge ${badgeClass}">${statusText}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
