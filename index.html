@@ -3,150 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>S&S | Transcend The Ordinary</title>
+    <title>S&S. | FINAL CALL - UP TO 80% OFF</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* UPDATED: Stacked layout instead of 2-column grid */
-        .home-bento { display: flex; flex-direction: column; gap: 20px; }
+        /* Stacked layout for high-impact mobile-first viewing */
+        .home-bento { display: flex; flex-direction: column; gap: 15px; }
         
         @media(min-width: 900px) {
-            .home-bento { gap: 30px; }
-            .hero-main { min-height: 600px; }
-            /* Makes the flash sale horizontal on desktop */
-            .flash-sale-billboard { flex-direction: row !important; align-items: center; justify-content: space-between; text-align: left; padding: 40px 50px !important; }
+            .home-bento { gap: 25px; }
+            .hero-main { min-height: 700px; }
+            /* Flash sale goes horizontal on desktop for maximum screen real estate */
+            .flash-sale-billboard { flex-direction: row !important; align-items: center; justify-content: space-between; text-align: left; padding: 40px 60px !important; }
             .flash-sale-text { margin-bottom: 0 !important; }
         }
 
-        .flash-sale-billboard { display: flex; flex-direction: column; text-align: center; gap: 20px; }
-    </style>
-</head>
-<body onload="setupGlobal()">
+        /* RED ALERT FLASH SALE */
+        .flash-sale-billboard { 
+            display: flex; 
+            flex-direction: column; 
+            text-align: center; 
+            gap: 20px; 
+            background: #ff4742 !important; /* Urgent Red */
+            color: white !important;
+            border: 3px solid #1a1a1a;
+            box-shadow: 8px 8px 0px #1a1a1a;
+        }
 
-    <!-- 1. FULLSCREEN MENU OVERLAY -->
-    <div class="menu-overlay" id="menuOverlay">
-        <div class="menu-header">
-            <div class="logo">S&S.</div>
-            <div class="close-btn" id="closeBtn">&times;</div>
-        </div>
-        <div class="menu-content">
-            <ul class="mobile-links">
-                <li style="--i:1"><a href="mens.html">MENS</a></li>
-                <li style="--i:2"><a href="womens.html">WOMENS</a></li>
-                <li style="--i:3"><a href="kids.html">KIDS</a></li>
-                <li style="--i:4"><a href="cart.html">CART</a></li>
-            </ul>
+        /* SKELETAL LOADING SYSTEM */
+        .skeleton {
+            background-color: #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            animation: shimmer 1.2s infinite ease-in-out;
+            z-index: 10;
+        }
+        @keyframes shimmer { 100% { left: 200%; } }
+
+        .lazy-img { opacity: 0; transition: opacity 0.5s ease-in; }
+
+        /* PROMO POPUP STYLES */
+        .promo-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease; padding: 20px;
+        }
+        .promo-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .promo-card {
+            background: #ffffff; width: 100%; max-width: 450px; 
+            padding: 40px; text-align: center; position: relative;
+            transform: translateY(30px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid #1a1a1a;
+            border-radius: 0px; /* Sharp brutalist edges */
+            box-shadow: 15px 15px 0px #ff4742;
+        }
+        .promo-overlay.active .promo-card { transform: translateY(0); }
+
+        .promo-close {
+            position: absolute; top: 10px; right: 15px; font-size: 35px;
+            cursor: pointer; background: none; border: none; color: #1a1a1a;
+        }
+    </style>
+<style>
+    .cat-section { padding: 40px 15px; max-width: 1300px; margin: 0 auto; }
+    
+    .cat-header h1 { font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 900; letter-spacing: -2px; text-transform: uppercase; margin: 0; line-height: 1; }
+    .text-red { color: #ff4742; }
+    .fomo-text { font-weight: 800; font-size: 0.8rem; color: #666; margin: 10px 0 30px; }
+
+    /* RESPONSIVE GRID LOGIC */
+    .grid-container {
+        display: grid;
+        gap: 15px;
+        grid-template-columns: repeat(2, 1fr); /* 2 columns for mobile */
+    }
+
+    /* Womens is the hero on mobile */
+    .card-featured { grid-column: span 2; border: 3px solid #ff4742 !important; }
+
+    @media (min-width: 900px) {
+        .grid-container { grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .card-featured { grid-column: span 1; } /* Levels out on Desktop */
+    }
+
+    /* UNIVERSAL CARD STYLING */
+    .card {
+        position: relative;
+        text-decoration: none;
+        border: 3px solid #1a1a1a;
+        overflow: hidden;
+        background: #fff;
+        display: block;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .card:active { transform: scale(0.97); }
+
+    .img-wrapper { width: 100%; height: 100%; min-height: 300px; aspect-ratio: 4/5; }
+    @media (min-width: 900px) { .img-wrapper { min-height: 450px; } }
+
+    .lazy-load { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* LABELS & BADGES */
+    .label-overlay {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        padding: 20px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.7));
+        display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .pill-btn {
+        background: #fff;
+        color: #1a1a1a;
+        padding: 8px 24px;
+        border-radius: 100px;
+        border: 3px solid #1a1a1a;
+        font-weight: 900;
+        font-size: 1rem;
+        width: fit-content;
+        box-shadow: 4px 4px 0px #1a1a1a;
+        text-transform: uppercase;
+    }
+
+    .sub-link { color: #ff4742; font-weight: 900; font-size: 0.75rem; text-transform: uppercase; }
+
+    .badge {
+        position: absolute; top: 12px; right: 12px;
+        padding: 5px 10px; font-weight: 900; font-size: 0.7rem;
+        border: 2px solid #1a1a1a; z-index: 5; text-transform: uppercase;
+    }
+    .badge-red { background: #ff4742; color: #fff; transform: rotate(2deg); }
+    .badge-black { background: #1a1a1a; color: #fff; }
+    .badge-lime { background: #d4ff00; color: #1a1a1a; }
+
+    /* SKELETON LOADING */
+    .skeleton { background: #eee; position: relative; }
+    .skeleton::after {
+        content: ""; position: absolute; top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shim 1.5s infinite;
+    }
+    @keyframes shim { 100% { left: 100%; } }
+</style>
+</head>
+<body onload="setupGlobal(); triggerPromoPopup(); loadHeroImage();">
+
+    <div class="promo-overlay" id="promoPopup">
+        <div class="promo-card">
+            <button class="promo-close" onclick="closePromoPopup()">&times;</button>
+            <div style="background: #ff0000; color: white; display: inline-block; padding: 5px 15px; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">
+                Sale
+            </div>
+            <h1 style="font-size: clamp(2.5rem, 8vw, 4rem); line-height: 0.85; margin-bottom: 15px; text-transform: uppercase; font-weight: 600;">
+                WOMEN'S FOOTWEAR UPTo<br><span style="color: #ff4742;"> 80% OFF</span>
+            </h1>
+            <p style="font-weight: 700; font-size: 1.1rem; margin-bottom: 25px; text-transform: uppercase; color: #444;">
+                The vault is closing. <br>Items in carts are NOT reserved.
+            </p>
+            <a href="womens.html" class="btn-main" style="display: block; width: 100%; font-size: 1.3rem; padding: 22px; text-decoration: none; background: #1a1a1a; color: white;">
+                SHOP NOW
+            </a>
         </div>
     </div>
 
-    <!-- 2. MAIN HOMEPAGE CONTENT -->
+    <!-- GLOBAL FULLSCREEN MENU OVERLAY -->
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-header"><div class="logo">S&S.</div><div class="close-btn" id="closeBtn">&times;</div></div>
+        <div class="menu-content">
+            <ul class="mobile-links"><li style="--i:1"><a href="mens.html">MENS</a></li><li style="--i:2"><a href="womens.html">WOMENS</a></li><li style="--i:3"><a href="kids.html">KIDS</a></li><li style="--i:4"><a href="contact.html">CONTACT</a></li></ul>
+        </div>
+    </div>
+
     <div class="container" style="margin-top: 10px;">
         
-        <!-- STACKED HERO BENTO GRID -->
         <div class="home-bento">
             
-            <!-- MAIN HERO BLOCK (100% WIDTH) -->
-            <div class="bento-card hero-main" style="position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; min-height: 500px; border: var(--border, 3px solid #1a1a1a);">
+            <div class="bento-card hero-main" style="position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; min-height: 550px; border: 3px solid #1a1a1a;">
+                <div id="heroBg" class="skeleton" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-position: center; background-size: cover; z-index: 1;"></div>
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0) 60%); z-index: 2;"></div>
                 
-                <!-- Background Image Layer -->
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1200') center/cover no-repeat; z-index: 1;"></div>
-                
-                <!-- Cinematic Dark Gradient Overlay -->
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.85) 100%); z-index: 2;"></div>
-                
-                <!-- Foreground Content -->
                 <div style="position: relative; z-index: 3; color: white;">
-                    <h1 class="huge-text" style="font-size: clamp(3.5rem, 8vw, 6.5rem); line-height: 0.85; margin: 0 0 20px 0; font-weight: 900; text-transform: uppercase;">
-                        RULE<br>
-                        <span class="outline-text" style="color: transparent; -webkit-text-stroke: 2px white;">THE</span><br>
-                        STREETS.
+                    <h1 style="font-size: clamp(3rem, 10vw, 6rem); line-height: 0.85; margin: 0 0 15px 0; font-weight: 900; text-transform: uppercase;">
+                        WOMEN'S<br>NEW ERA.
                     </h1>
-                    <p style="font-weight: 800; font-size: 1.25rem; margin-bottom: 30px; max-width: 380px; line-height: 1.4; color: #f0f0f0;">
-                        Unapologetic height meets brutalist elegance. Step into the new standard of power.
+                    <p style="font-weight: 700; font-size: 1.2rem; margin-bottom: 25px; max-width: 400px; color: #ddd;">
+                        Our biggest drop ever is here. High demand expected. Grab yours before it's gone forever.
                     </p>
-                    <a href="womens.html" class="btn-main" style="background: white; color: var(--black, #1a1a1a); width: fit-content; text-decoration: none; padding: 16px 32px; font-size: 1rem; box-shadow: 6px 6px 0px var(--accent, #d4ff00);">
-                        SHOP WOMENS DROPS
+                    <a href="womens.html" class="btn-main" style="background: #ff4742; color: white; width: fit-content; text-decoration: none; padding: 18px 35px; font-size: 1.1rem; border: none; font-weight: 900;">
+                        SHOP NOW
                     </a>
                 </div>
             </div>
 
-            <!-- FULL-WIDTH FLASH SALE BILLBOARD -->
-            <div class="bento-card flash-sale-billboard" style="background: var(--accent, #d4ff00); color: var(--black, #1a1a1a); padding: 30px;">
-                <div class="flash-sale-text" style="margin-bottom: 20px;">
-                    <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1; margin-bottom: 10px; text-transform: uppercase; font-weight: 900;">FLASH SALE</h2>
-                    <p style="font-weight: 800; font-size: 1.25rem; margin: 0;">Up to 40% off selected womens gear.</p>
+            <div class="bento-card flash-sale-billboard">
+                <div class="flash-sale-text">
+                    <h2 style="font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1; margin-bottom: 5px; text-transform: uppercase; font-weight: 900;">🔥 FLASH SALE</h2>
+                    <p style="font-weight: 700; font-size: 1.1rem; margin: 0;">Last chance for upto 80% off on selected women's styles.</p>
                 </div>
-                <a href="womens.html" class="btn-main" style="background: var(--black, #1a1a1a); color: white; padding: 18px 40px; font-size: 1.1rem; text-decoration: none; box-shadow: 6px 6px 0px rgba(0,0,0,0.2); white-space: nowrap;">
-                    SHOP SALE NOW
+                <a href="womens.html" class="btn-main" style="background: white; color: #ff4742; padding: 15px 30px; font-size: 1rem; text-decoration: none; font-weight: 900; text-transform: uppercase;">
+                    Don't Miss Out
                 </a>
             </div>
             
         </div>
 
-        <!-- INFINITE MARQUEE -->
-        <div class="marquee-container" style="margin-top: 30px;">
-            <div class="marquee-content">
-                FREE SHIPPING OVER ₹15,000 <span>✦</span> 
-                NEW DROPS EVERY FRIDAY <span>✦</span> 
-                DOWNLOAD THE APP <span>✦</span> 
-                STREETWEAR REDEFINED <span>✦</span>
-                FREE SHIPPING OVER ₹15,000 <span>✦</span> 
-                NEW DROPS EVERY FRIDAY <span>✦</span> 
-                DOWNLOAD THE APP <span>✦</span> 
-                STREETWEAR REDEFINED <span>✦</span>
+        <div class="marquee-container" style="margin-top: 25px; background: #1a1a1a; color: white; padding: 15px 0;">
+            <div class="marquee-content" style="font-weight: 900;">
+                SELLING FAST <span>✦</span> 200+ PEOPLE VIEWING WOMENS COLLECTION <span>✦</span> FREE SHIPPING OVER ₹15,000 <span>✦</span> NO RESTOCKS ON SALE ITEMS <span>✦</span> SELLING FAST <span>✦</span>
             </div>
         </div>
 
-        <!-- EDITORIAL CATEGORY CARDS -->
-        <h1 style="font-size: 3rem; margin-top: 60px; margin-bottom: 20px;">CHOOSE YOUR ARENA.</h1>
-        <div class="category-bento" style="margin-bottom: 80px;">
-            <a href="mens.html" class="bento-card cat-card" style="padding: 0; text-decoration: none;">
-                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=800" alt="Mens" style="width: 100%; height: 300px; object-fit: cover; border-bottom: var(--border, 3px solid #1a1a1a); border-radius: 9px 9px 0 0;">
-                <h2 style="margin: 25px; color: var(--black, #1a1a1a);">MENS</h2>
-            </a>
-            <a href="womens.html" class="bento-card cat-card" style="padding: 0; text-decoration: none;">
-                <img src="https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?q=80&w=800" alt="Womens" style="width: 100%; height: 300px; object-fit: cover; border-bottom: var(--border, 3px solid #1a1a1a); border-radius: 9px 9px 0 0;">
-                <h2 style="margin: 25px; color: var(--black, #1a1a1a);">WOMENS</h2>
-            </a>
-            <a href="kids.html" class="bento-card cat-card" style="padding: 0; text-decoration: none;">
-                <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=800" alt="Kids" style="width: 100%; height: 300px; object-fit: cover; border-bottom: var(--border, 3px solid #1a1a1a); border-radius: 9px 9px 0 0;">
-                <h2 style="margin: 25px; color: var(--black, #1a1a1a);">KIDS</h2>
-            </a>
-        </div>
-
+<section class="cat-section">
+    <div class="cat-header">
+        <h1>HURRY! <span class="text-red">SHOP BY CATEGORY</span></h1>
+        <p class="fomo-text">STOCK IS EXTREMELY LIMITED. ONCE GONE, IT'S GONE.</p>
     </div>
 
-    <!-- 3. UNIVERSAL FLOATING APP DOCK (Shows Everywhere) -->
+    <div class="grid-container">
+        <a href="womens.html" class="card card-featured">
+            <div class="img-wrapper skeleton">
+                <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000" 
+                     alt="Womens" class="lazy-load" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="badge badge-red">80% OFF APPLIED</div>
+            <div class="label-overlay">
+                <div class="pill-btn">WOMENS</div>
+                <span class="sub-link">VIEW SELLING FAST DROPS →</span>
+            </div>
+        </a>
+
+        <a href="mens.html" class="card">
+            <div class="img-wrapper skeleton">
+                <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=800" 
+                     alt="Mens" class="lazy-load" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="badge badge-black">LOW STOCK</div>
+            <div class="label-overlay">
+                <div class="pill-btn">MENS</div>
+            </div>
+        </a>
+
+        <a href="kids.html" class="card">
+            <div class="img-wrapper skeleton">
+                <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=800" 
+                     alt="Kids" class="lazy-load" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="badge badge-lime">NEW ARRIVAL</div>
+            <div class="label-overlay">
+                <div class="pill-btn">KIDS</div>
+            </div>
+        </a>
+    </div>
+</section>
+    </div>
+
+    <!-- UNIVERSAL FLOATING APP DOCK -->
     <div class="bottom-nav">
-        <!-- Menu Trigger -->
-        <div class="nav-item" id="menuBtn">
-            <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            <span>SHOP</span>
-        </div>
-
-        <!-- Profile -->
-        <a href="account.html" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>PROFILE</span>
-        </a>
-
-        <!-- BRAND LOGO (Center Anchor) -->
+        <div class="nav-item" id="menuBtn"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg><span>SHOP</span></div>
+        <a href="account.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>PROFILE</span></a>
         <a href="index.html" class="dock-logo">S&S.</a>
-
-        <!-- Orders / Archive -->
-        <a href="orders.html" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>
-            <span>ORDERS</span>
-        </a>
-
-        <!-- Cart -->
-        <a href="cart.html" class="nav-item">
-            <div class="cart-badge cart-count">0</div>
-            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-            <span>CART</span>
-        </a>
+        <a href="orders.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg><span>ORDERS</span></a>
+        <a href="cart.html" class="nav-item"><div class="cart-badge cart-count">0</div><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>CART</span></a>
     </div>
 
-    <!-- 4. CORE ENGINE -->
     <script src="script.js"></script>
+    <script>
+        // FORCED PROMO POPUP (Resets every refresh for max FOMO)
+        function triggerPromoPopup() {
+            setTimeout(() => {
+                document.getElementById('promoPopup').classList.add('active');
+            }, 500); 
+        }
+
+        function closePromoPopup() {
+            document.getElementById('promoPopup').classList.remove('active');
+        }
+
+        // Click outside to close
+        document.getElementById('promoPopup').addEventListener('click', function(e) {
+            if (e.target === this) { closePromoPopup(); }
+        });
+
+        // Hero Image Load
+        function loadHeroImage() {
+            const heroUrl = "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200";
+            const img = new Image();
+            img.src = heroUrl;
+            img.onload = () => {
+                const heroBg = document.getElementById('heroBg');
+                heroBg.style.backgroundImage = `url('${heroUrl}')`;
+                heroBg.classList.remove('skeleton');
+            };
+        }
+    </script>
 </body>
 </html>
