@@ -5,80 +5,397 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>S&S. | Mens Collection</title>
     <link rel="stylesheet" href="style.css">
-</head>
-<body onload="loadProducts('men')">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #1a1a1a;
+            --white: #ffffff;
+            --accent: #7d93ec;
+            --purple: #d1b3ff;
+            --red: #ff4742;
+            --border-w: 3px;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding-bottom: 120px;
+        }
+
+        /* --- SMOOTH INFINITE FOMO TICKER --- */
+        .fomo-ticker {
+            background: var(--black);
+            color: var(--accent);
+            padding: 12px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.85rem;
+            border-bottom: var(--border-w) solid var(--black);
+            position: relative;
+        }
+        
+        .ticker-wrapper {
+            display: flex;
+            width: fit-content;
+            animation: infinite-ticker 20s linear infinite;
+        }
+
+        .ticker-content {
+            flex-shrink: 0;
+            padding-right: 10px;
+        }
+
+        @keyframes infinite-ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); } 
+        }
+
+        /* --- STICKY DUAL-FILTER HEADER --- */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(244, 244, 244, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: var(--border-w) solid var(--black);
+            padding: 15px 20px;
+        }
+
+        .filter-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 600px) {
+            .filter-container {
+                grid-template-columns: 1fr; /* Stacks search and sort nicely on small mobile screens */
+            }
+        }
+
+        /* --- SEARCH BAR --- */
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: var(--white);
+            border: var(--border-w) solid var(--black);
+            border-radius: 12px;
+            padding: 0 14px;
+            box-shadow: 5px 5px 0px var(--black);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+            box-sizing: border-box;
+            height: 54px; /* Matches dropdown height */
+        }
+
+        .search-container:focus-within {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px var(--accent);
+            background: var(--white);
+        }
+
+        .search-icon {
+            width: 18px;
+            height: 18px;
+            stroke: var(--black);
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        #searchInput {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.9rem;
+            color: var(--black);
+            text-transform: uppercase;
+            width: 100%;
+            box-shadow: none;
+            margin-top: 18px;
+        }
+
+        #searchInput::placeholder {
+            color: #888;
+        }
+
+        /* --- CUSTOM UI DROPDOWNS --- */
+        .custom-dropdown {
+            position: relative;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            user-select: none;
+            height: 54px;
+        }
+
+        .dropdown-header {
+            width: 100%;
+            height: 100%;
+            padding: 0 14px;
+            border: var(--border-w) solid var(--black);
+            border-radius: 12px;
+            background: var(--white);
+            box-shadow: 5px 5px 0px var(--black);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, background 0.2s;
+            box-sizing: border-box;
+        }
+
+        .dropdown-header:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px var(--accent);
+        }
+
+        .dropdown-header.active {
+            background: var(--accent);
+            box-shadow: 3px 3px 0px var(--black);
+            transform: translate(2px, 2px);
+        }
+
+        .chevron {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-header.active .chevron {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: var(--border-w) solid var(--black);
+            border-radius: 12px;
+            box-shadow: 6px 6px 0px var(--black);
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-15px);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .dropdown-list.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-option {
+            padding: 14px 16px;
+            border-bottom: var(--border-w) solid var(--black);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--white);
+        }
+
+        .dropdown-option:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-option:hover {
+            background: var(--accent);
+            padding-left: 22px; 
+        }
+
+        .dropdown-option.selected {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        /* --- PRODUCT CARDS & PRICING --- */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .prod-card {
+            background: var(--white);
+            border: var(--border-w) solid var(--black);
+            border-radius: 16px;
+            padding: 20px;
+            text-decoration: none;
+            color: var(--black);
+            position: relative;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prod-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 12px 12px 0px var(--black);
+        }
+
+        .price-row {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .current-price {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.6rem;
+            color: var(--red);
+            letter-spacing: -1px;
+        }
+
+        .old-price {
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: #888;
+            text-decoration: line-through;
+            font-weight: 700;
+        }
+
+        /* --- BADGES --- */
+        .badge-container {
+            position: absolute;
+            top: 15px; left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .sale-tag {
+            background: var(--red);
+            color: white;
+            padding: 6px 12px;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            border: 2px solid var(--black);
+            border-radius: 6px;
+            transform: rotate(-5deg);
+            box-shadow: 3px 3px 0px var(--black);
+        }
+
+        .img-container {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border: var(--border-w) solid var(--black);
+            border-radius: 10px;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 15px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--white);
+            border: var(--border-w) solid var(--black);
+            border-radius: 16px;
+            box-shadow: 8px 8px 0px var(--black);
+        }
+
+        /* --- SKELETON --- */
+        .skeleton { background: #e0e0e0; height: 400px; border-radius: 16px; border: 3px solid #ccc; }
+
+        /* --- BOTTOM NAV FIX --- */
+        .bottom-nav .nav-item, 
+        .bottom-nav a {
+            -webkit-tap-highlight-color: transparent !important; 
+        }
+        
+        .bottom-nav .nav-item:active,
+        .bottom-nav .nav-item:focus,
+        .bottom-nav .nav-item:hover,
+        .bottom-nav .nav-item.active {
+            background-color: transparent !important; 
+            color: var(--black) !important;
+        }
+        
+        .bottom-nav .nav-item:active svg,
+        .bottom-nav .nav-item.active svg {
+            stroke: var(--black) !important;
+        }
+    </style>
+</head>
+<body>
     <!-- GLOBAL FULLSCREEN MENU OVERLAY -->
     <div class="menu-overlay" id="menuOverlay">
-        <div class="menu-header">
-            <div class="logo">S&S.</div>
-            <div class="close-btn" id="closeBtn">&times;</div>
-        </div>
+        <div class="menu-header"><div class="logo">S&S.</div><div class="close-btn" id="closeBtn">&times;</div></div>
         <div class="menu-content">
-            <ul class="mobile-links">
-                <li style="--i:1"><a href="mens.html">MENS</a></li>
-                <li style="--i:2"><a href="womens.html">WOMENS</a></li>
-                <li style="--i:3"><a href="kids.html">KIDS</a></li>
-                <li style="--i:4"><a href="cart.html">CART</a></li>
-            </ul>
+            <ul class="mobile-links"><li style="--i:1"><a href="mens.html">MENS</a></li><li style="--i:2"><a href="womens.html">WOMENS</a></li><li style="--i:3"><a href="kids.html">KIDS</a></li><li style="--i:4"><a href="contact.html">CONTACT</a></li></ul>
+        </div>
+    </div>
+    
+    <div class="fomo-ticker">
+        <div class="ticker-wrapper">
+            <div class="ticker-content">
+                🔥 15% OFF ALL FOOTWEAR — CODE: DROP15 — ENDING SOON — 🔥 15% OFF ALL FOOTWEAR — CODE: DROP15 — ENDING SOON — 
+            </div>
+            <div class="ticker-content">
+                🔥 15% OFF ALL FOOTWEAR — CODE: DROP15 — ENDING SOON — 🔥 15% OFF ALL FOOTWEAR — CODE: DROP15 — ENDING SOON — 
+            </div>
         </div>
     </div>
 
-    <!-- MAIN PAGE CONTENT -->
-    <div class="container">
-        
-        <!-- Hero Banner Card -->
-        <div class="bento-card" style="background: var(--secondary); margin-bottom: 40px;">
-            <h1 style="font-size: 4rem;">MEN'S DROPS.</h1>
-            <p style="font-weight: 600;">Engineered for the streets. Built for movement.</p>
-        </div>
-
-        <!-- Upgraded Filter Controls -->
+    <div class="sticky-header">
         <div class="filter-container">
-            <div class="filter-select">
-                <select id="sizeFilter" onchange="loadProducts('men')">
-                    <option value="">All Sizes</option>
-                    <option value="8">UK 8</option>
-                    <option value="9">UK 9</option>
-                    <option value="10">UK 10</option>
-                    <option value="11">UK 11</option>
-                </select>
+            <!-- Global Search -->
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="searchInput" placeholder="SEARCH STYLE, MODEL NO..." autocomplete="off">
             </div>
-            <div class="filter-select">
-                <select id="priceSort" onchange="loadProducts('men')">
-                    <option value="">Sort By</option>
-                    <option value="low">Price: Low to High</option>
-                    <option value="high">Price: High to Low</option>
-                </select>
-            </div>
-        </div>
 
-        <!-- Product Grid (Populated by script.js) -->
-        <div class="product-grid" id="main-grid">
-            <!-- Skeletons will be injected here instantly, followed by products -->
+            <!-- Custom Dropdown: Price Sort -->
+            <div class="custom-dropdown" id="sortDropdown" data-value="">
+                <div class="dropdown-header">
+                    <span class="dropdown-text">SORT BY PRICE</span>
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="dropdown-list">
+                    <div class="dropdown-option selected" data-value="">FEATURED</div>
+                    <div class="dropdown-option" data-value="low">LOWEST FIRST</div>
+                    <div class="dropdown-option" data-value="high">HIGHEST FIRST</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- UNIVERSAL FLOATING APP DOCK -->
-    <div class="bottom-nav">
-        <!-- Menu Trigger -->
-        <div class="nav-item" id="menuBtn">
-            <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            <span>SHOP</span>
+    <div class="container">
+        <div style="max-width: 1200px; margin: 30px auto; padding: 0 20px;">
+            <div style="background: var(--accent); border: var(--border-w) solid var(--black); padding: 40px 20px; border-radius: 16px; box-shadow: 8px 8px 0px var(--black);">
+                <h1 style="font-family: 'Archivo Black'; font-size: clamp(2.5rem, 8vw, 4rem); margin: 0; line-height: 0.8; color: var(--black);">MEN'S<br>VAULT.</h1>
+                <p style="font-weight: 900; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;">Exclusive Drops. No Restocks.</p>
+            </div>
         </div>
-        <!-- Profile -->
-        <a href="account.html" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>PROFILE</span>
-        </a>
-        <!-- BRAND LOGO (Center Anchor) -->
+
+        <div class="product-grid" id="main-grid"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <div class="nav-item" id="menuBtn"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg><span>SHOP</span></div>
+        <a href="account.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>PROFILE</span></a>
         <a href="index.html" class="dock-logo">S&S.</a>
-        <!-- Orders / Archive -->
-        <a href="orders.html" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>
-            <span>ORDERS</span>
-        </a>
-        <!-- Cart -->
+        <a href="orders.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg><span>ORDERS</span></a>
         <a href="cart.html" class="nav-item">
             <div class="cart-badge cart-count">0</div>
             <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
@@ -86,8 +403,174 @@
         </a>
     </div>
 
-    <!-- Core Engine -->
     <script src="script.js"></script>
+    <script>
+        // Store globally to enable instant client-side filtering without spamming API
+        let currentProducts =[];
 
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof setupGlobal === 'function') setupGlobal(); 
+            updateCartBadge();
+            setupCustomDropdowns();
+            setupSearch();
+            fetchProducts();
+        });
+
+        function updateCartBadge() {
+            try {
+                let cart =[];
+                if (typeof getCart === 'function') {
+                    cart = getCart();
+                } else {
+                    const savedCart = localStorage.getItem('step_cart') || localStorage.getItem('cart');
+                    if (savedCart) cart = JSON.parse(savedCart);
+                }
+
+                const badgeEls = document.querySelectorAll('.cart-count');
+                badgeEls.forEach(badge => {
+                    badge.innerText = cart.length;
+                    if(cart.length > 0) {
+                        badge.style.background = 'var(--red)';
+                        badge.style.color = 'var(--white)';
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching cart data:', error);
+            }
+        }
+
+        function setupCustomDropdowns() {
+            const dropdowns = document.querySelectorAll('.custom-dropdown');
+
+            dropdowns.forEach(dropdown => {
+                const header = dropdown.querySelector('.dropdown-header');
+                const list = dropdown.querySelector('.dropdown-list');
+                const textSpan = dropdown.querySelector('.dropdown-text');
+
+                header.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    document.querySelectorAll('.dropdown-list').forEach(l => { if (l !== list) l.classList.remove('show'); });
+                    document.querySelectorAll('.dropdown-header').forEach(h => { if (h !== header) h.classList.remove('active'); });
+                    
+                    list.classList.toggle('show');
+                    header.classList.toggle('active');
+                });
+
+                list.addEventListener('click', (e) => {
+                    const option = e.target.closest('.dropdown-option');
+                    if (option) {
+                        list.querySelectorAll('.dropdown-option').forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+
+                        const value = option.dataset.value;
+                        const text = option.textContent;
+                        
+                        dropdown.dataset.value = value;
+                        textSpan.textContent = text;
+                        
+                        list.classList.remove('show');
+                        header.classList.remove('active');
+                        
+                        fetchProducts(); // Re-fetch dataset based on new sort
+                    }
+                });
+            });
+
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.dropdown-list').forEach(l => l.classList.remove('show'));
+                document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
+            });
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            // Trigger real-time filtering as user types
+            searchInput.addEventListener('input', renderProducts);
+        }
+
+        // Fetches main array from DB based on SORT criteria, then relies on renderProducts to filter
+        async function fetchProducts() {
+            const grid = document.getElementById('main-grid');
+            grid.innerHTML = Array(6).fill('<div class="skeleton"></div>').join('');
+
+            // Failsafe for missing variables if running locally without the script.js loaded
+            const baseURL = typeof SB_URL !== 'undefined' ? SB_URL : '';
+            const key = typeof SB_KEY !== 'undefined' ? SB_KEY : '';
+
+            let url = `${baseURL}/rest/v1/products?category=eq.men`;
+            const sort = document.getElementById('sortDropdown').dataset.value;
+
+            if (sort === 'low') url += `&order=price.asc`;
+            else if (sort === 'high') url += `&order=price.desc`;
+            else url += `&order=id.desc`;
+
+            try {
+                const headers = key ? { 'apikey': key, 'Authorization': `Bearer ${key}` } : {};
+                const res = await fetch(url, { headers });
+                
+                if (!res.ok) throw new Error("Network response was not ok");
+                
+                currentProducts = await res.json();
+                renderProducts(); // Passes to render pipeline to handle text filtering
+            } catch (e) {
+                console.error("Fetch Error:", e);
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h2 style="font-family: 'Archivo Black'; margin: 0; color: var(--red);">CONNECTION ERROR.</h2>
+                        <p style="font-weight: 700; color: #555; margin-top: 10px;">Unable to load the vault right now. Please refresh.</p>
+                    </div>`;
+            }
+        }
+
+        // Filters currentProducts based on Search Input and renders them
+        function renderProducts() {
+            const grid = document.getElementById('main-grid');
+            const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            // Client-side multi-field filter to guarantee 10/10 responsiveness
+            const filteredProducts = currentProducts.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const style = (p.style || '').toLowerCase();
+                const modelNo = (p.model_no || '').toLowerCase();
+                
+                return name.includes(searchQuery) || 
+                       style.includes(searchQuery) || 
+                       modelNo.includes(searchQuery);
+            });
+
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h2 style="font-family: 'Archivo Black'; margin: 0;">NO DROPS FOUND.</h2>
+                        <p style="font-weight: 700; color: #555; margin-top: 10px;">We couldn't find any styles matching "${searchQuery}".</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = filteredProducts.map(p => {
+                const price = p.price;
+                const oldPrice = p.compare_at_price;
+                const hasSale = oldPrice && oldPrice > price;
+
+                return `
+                <a href="checkout.html?id=${p.id}" class="prod-card">
+                    <div class="badge-container">
+                        ${hasSale ? `<div class="sale-tag">-${Math.round((1 - price/oldPrice)*100)}%</div>` : ''}
+                    </div>
+                    <div class="img-container" style="background-image: url('${p.image_urls?.[0] || 'placeholder.jpg'}')"></div>
+                    
+                    <div style="flex-grow: 1;">
+                        <h3 style="font-family: 'Archivo Black'; font-size: 1.2rem; margin: 0; text-transform: uppercase; line-height: 1;">${p.name}</h3>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: #555; text-transform: uppercase; margin-top: 5px; display: block;">${p.style || 'Lifestyle'} ${p.model_no ? `// ${p.model_no}` : ''}</span>
+                    </div>
+
+                    <div class="price-row">
+                        <span class="current-price">₹${price.toLocaleString('en-IN')}</span>
+                        ${hasSale ? `<span class="old-price">₹${oldPrice.toLocaleString('en-IN')}</span>` : ''}
+                    </div>
+                </a>`;
+            }).join('');
+        }
+    </script>
 </body>
 </html>
