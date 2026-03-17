@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>STEP. | Your Order Archive</title>
+    <title>S&S. | Your Order Archive</title>
     <link rel="stylesheet" href="style.css">
 <style>
     .bento-card {
@@ -40,6 +40,13 @@
 </head>
 <body onload="loadUserOrders()">
 
+        <!-- GLOBAL FULLSCREEN MENU OVERLAY -->
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-header"><div class="logo">S&S.</div><div class="close-btn" id="closeBtn">&times;</div></div>
+        <div class="menu-content">
+            <ul class="mobile-links"><li style="--i:1"><a href="mens.html">MENS</a></li><li style="--i:2"><a href="womens.html">WOMENS</a></li><li style="--i:3"><a href="kids.html">KIDS</a></li><li style="--i:4"><a href="cart.html">CART</a></li></ul>
+        </div>
+    </div>
     <!-- Global Menu Overlay and Universal App Dock are assumed to be here -->
     <div class="menu-overlay" id="menuOverlay">
         <div class="menu-header">
@@ -67,7 +74,7 @@
     <div class="container" style="max-width: 900px;">
         
         <div class="bento-card" style="background: var(--purple); margin-bottom: 30px;">
-            <h1 style="font-size: clamp(2.5rem, 6vw, 4rem);">YOUR ARCHIVE.</h1>
+            <h1 style="font-size: clamp(2.5rem, 6vw, 4rem);">YOUR ORDERS.</h1>
             <p style="font-weight: 600;">Track your drops in real-time.</p>
         </div>
 
