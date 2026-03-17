@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S&S | Shopping Cart</title>
+    <title>S&S. | Shopping Cart</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body onload="setupGlobal(); loadCartPage()">
@@ -12,7 +12,7 @@
     <div class="menu-overlay" id="menuOverlay">
         <div class="menu-header"><div class="logo">S&S.</div><div class="close-btn" id="closeBtn">&times;</div></div>
         <div class="menu-content">
-            <ul class="mobile-links"><li style="--i:1"><a href="mens.html">MENS</a></li><li style="--i:2"><a href="womens.html">WOMENS</a></li><li style="--i:3"><a href="kids.html">KIDS</a></li><li style="--i:4"><a href="cart.html">CART</a></li></ul>
+            <ul class="mobile-links"><li style="--i:1"><a href="mens.html">MENS</a></li><li style="--i:2"><a href="womens.html">WOMENS</a></li><li style="--i:3"><a href="kids.html">KIDS</a></li><li style="--i:4"><a href="contact.html">CONTACT</a></li></ul>
         </div>
     </div>
 
@@ -83,7 +83,7 @@
                     <div style="flex:1;">
                         <h3>${item.name}</h3>
                         <p style="font-weight:800; color:var(--accent);">₹${item.price.toLocaleString('en-IN')}</p>
-                        <p style="font-size:12px; font-weight:600; margin-top:5px;">UK ${item.size} | Color: ${item.color}</p>
+                        <p style="font-size:12px; font-weight:600; margin-top:5px;">EURO ${item.size} | Color: ${item.color}</p>
                         <button type="button" onclick="removeFromCart(${index})" style="margin-top:10px; background:none; border:none; color:red; font-weight:800; cursor:pointer;">REMOVE</button>
                     </div>
                 </div>`;
