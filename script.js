@@ -51,7 +51,7 @@ async function loadProducts(category) {
                     <p style="color:#666; font-weight:600;">₹${shoe.price.toLocaleString('en-IN')}</p></div>
                 </div>
                 <div style="display:flex; gap:5px; margin-bottom: 20px; flex-wrap: wrap;">
-                    ${shoe.sizes.map(s => `<span style="padding:4px 8px; border:2px solid black; border-radius:4px; font-weight:800; font-size:12px;">UK ${s}</span>`).join('')}
+                    ${shoe.sizes.map(s => `<span style="padding:4px 8px; border:2px solid black; border-radius:4px; font-weight:800; font-size:12px;">EURO ${s}</span>`).join('')}
                 </div>
                 <a href="checkout.html?id=${shoe.id}" class="btn-main" style="width:100%;">VIEW PRODUCT</a>
             </div>
@@ -163,7 +163,7 @@ async function loadProducts(category) {
                         </div>
                     </div>
                     <div style="display:flex; gap:5px; margin-bottom: 20px; flex-wrap: wrap;">
-                        ${sizes.slice(0, 4).map(s => `<span style="padding:4px 8px; border:2px solid black; border-radius:4px; font-weight:800; font-size:12px;">UK ${s}</span>`).join('')}
+                        ${sizes.slice(0, 4).map(s => `<span style="padding:4px 8px; border:2px solid black; border-radius:4px; font-weight:800; font-size:12px;">EURO ${s}</span>`).join('')}
                         ${sizes.length > 4 ? '<span style="font-size: 12px; font-weight: 800; padding:4px;">+ MORE</span>' : ''}
                     </div>
                     ${btnHtml}
