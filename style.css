@@ -226,7 +226,7 @@ nav { display: none !important; }
 }
 
 .nav-item:active { transform: scale(0.85); }
-.nav-item:hover svg { stroke: var(--accent); transform: translateY(-3px); transition: 0.2s; }
+.nav-item:hover svg { transform: translateY(-3px); transition: 0.2s; }
 
 .nav-item svg { 
     width: 26px; height: 26px; stroke-width: 2.5; 
@@ -252,7 +252,7 @@ nav { display: none !important; }
 /* Notification Badge */
 .cart-badge {
     position: absolute; top: -10px; right: -10px;
-    background: var(--accent); color: white;
+    background: #ff4742; color: white;
     font-size: 12px; font-weight: 800; width: 22px; height: 22px;
     display: flex; align-items: center; justify-content: center;
     border-radius: 50%; border: 2px solid var(--black);
