@@ -502,7 +502,7 @@
 
             if (sort === 'low') url += `&order=price.asc`;
             else if (sort === 'high') url += `&order=price.desc`;
-            else url += `&order=id.desc`;
+            else url += `&order=display_order.asc,id.desc`; // --- UPDATED: Default sort is now by your custom order ---
 
             try {
                 const headers = key ? { 'apikey': key, 'Authorization': `Bearer ${key}` } : {};
