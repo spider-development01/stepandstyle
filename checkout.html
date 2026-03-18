@@ -44,22 +44,28 @@
         <div class="bento-card bento-gallery" id="gallery-ui" style="background: white; padding: 25px;"></div>
 
         <div class="right-column">
+            <div class="bento-card bento-info" id="info-ui" style="background: var(--purple);"></div>
+            
             <form id="checkout-form" onsubmit="placeOrder(event)" style="display: contents;">
-                <div class="bento-card bento-info" id="info-ui" style="background: var(--purple);"></div>
-
                 <div class="bento-card bento-form" id="checkout-form-container" style="display: none; background: var(--secondary);">
                     <h2>SECURE CHECKOUT</h2>
                     <p style="margin-bottom: 20px; font-weight: 600;">Where are we dropping this?</p>
                     
                     <label>Full Name</label><input type="text" id="c-name" placeholder="John Doe" required>
                     <label>Email Address</label><input type="email" id="c-email" placeholder="john@example.com" required>
-                    <!-- NEW: PHONE INPUT FOR FAST CHECKOUT -->
                     <label>Phone Number</label><input type="tel" id="c-phone" placeholder="+91" required>
                     <label>Delivery Address</label><textarea id="c-address" rows="3" placeholder="123 Street, City, State, PIN" required></textarea>
                     
                     <button type="submit" class="btn-main" style="width: 100%; font-size: 1.2rem; padding: 25px; margin-top: 10px;">CONFIRM & PAY</button>
                 </div>
             </form>
+
+            <!-- NEW: LOGIN PROMPT FOR GUEST USERS -->
+            <div class="bento-card" id="login-prompt-container" style="display: none; background: var(--secondary); text-align: center;">
+                <h2>LOGIN REQUIRED</h2>
+                <p style="margin: 10px 0 25px 0; font-weight: 600;">Please login or create an account to continue with your purchase.</p>
+                <a href="account.html" class="btn-main" style="display: block; padding: 25px;">LOGIN / SIGN UP</a>
+            </div>
         </div>
     </div>
 
@@ -91,7 +97,6 @@
             const sizes = Array.isArray(currentShoe.sizes) ? currentShoe.sizes :[];
             const colors = Array.isArray(currentShoe.colors) ? currentShoe.colors :[];
 
-            // --- ADVANCED PRICING LOGIC ---
             const currentPrice = Number(currentShoe.price || 0);
             const originalPrice = currentShoe.compare_at_price ? Number(currentShoe.compare_at_price) : null;
             let priceHtml = `₹${currentPrice.toLocaleString('en-IN')}`;
@@ -104,7 +109,7 @@
             }
 
             try {
-                const user = JSON.parse(localStorage.getItem('step_user')); // FIXED KEY
+                const user = JSON.parse(localStorage.getItem('step_user'));
                 if (user) {
                     document.getElementById('c-name').value = user.name || '';
                     document.getElementById('c-email').value = user.email || '';
@@ -115,22 +120,15 @@
                 <div class="smooth-fade">
                     <input type="hidden" id="order-product-id" value="${currentShoe.id}">
                     <input type="hidden" id="order-final-price" value="${currentPrice}">
-                    
                     ${saleBadgeHtml}
                     <div style="font-size:10px; font-weight:900; letter-spacing:1px; margin-bottom:5px; color:#555;">${styleTxt.toUpperCase()}</div>
                     <h1 id="p-title" style="font-size: clamp(2.5rem, 5vw, 3.5rem); line-height: 1;">${title}</h1>
                     <h2 id="p-price" style="font-size: 2.2rem; margin: 15px 0 25px 0;">${priceHtml}</h2>
-
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <label>Select Size () <span id="selected-size-name" style="color: var(--black); font-weight: 800; margin-left: 5px;"></span></label>
-                    </div>
+                    <label>Select Size <span id="selected-size-name" style="color: var(--black); font-weight: 800;"></span></label>
                     <div class="swatch-group" id="size-swatches">
                         ${sizes.map((s, index) => `<div class="size-swatch"><input type="radio" name="size" id="size-${index}" value="${s}" required onchange="document.getElementById('selected-size-name').innerText = '- ' + this.value;"><label for="size-${index}">${s}</label></div>`).join('') || '<p>No sizes available</p>'}
                     </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <label>Select Color <span id="selected-color-name" style="color: var(--black); font-weight: 800; margin-left: 5px;"></span></label>
-                    </div>
+                    <label>Select Color <span id="selected-color-name" style="color: var(--black); font-weight: 800;"></span></label>
                     <div class="swatch-group" id="color-swatches">
                         ${colors.map((c, index) => {
                             const safeValue = c.replace(/"/g, '&quot;');
@@ -138,14 +136,9 @@
                             return `<div class="color-swatch"><input type="radio" name="color" id="color-${index}" value="${safeValue}" required onchange="handleColorChange(this.value)" ${index === 0 ? 'checked' : ''}><label for="color-${index}" style="background-color: ${bgColor};" title="${safeValue}"></label></div>`;
                         }).join('') || '<p>No colors specified</p>'}
                     </div>
-
                     <div style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
-                        <button type="button" class="btn-white" id="add-cart-btn" onclick="handleAddToCart()" style="flex: 1; padding: 20px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                            ADD TO BAG
-                        </button>
-                        <button type="button" class="btn-main" id="buy-now-btn" onclick="revealCheckoutForm()" style="flex: 1; padding: 20px; font-size: 1.1rem;">
-                            BUY NOW
-                        </button>
+                        <button type="button" class="btn-white" id="add-cart-btn" onclick="handleAddToCart()">ADD TO BAG</button>
+                        <button type="button" class="btn-main" id="buy-now-btn" onclick="revealCheckoutForm()">BUY NOW</button>
                     </div>
                 </div>`;
 
@@ -171,16 +164,37 @@
         
         function changeImage(element, url) { document.getElementById('main-view').src = url; document.querySelectorAll('.thumb-img').forEach(img => img.classList.remove('active')); element.classList.add('active'); }
 
+        // --- UPDATED FUNCTION ---
         function revealCheckoutForm() {
             const sizeCheck = document.querySelector('input[name="size"]:checked');
             const colorCheck = document.querySelector('input[name="color"]:checked');
-            if(!sizeCheck || (!colorCheck && document.getElementById('color-swatches').innerHTML.includes('radio'))) { return alert("Please select your Size and Color before proceeding."); }
+            if(!sizeCheck || (!colorCheck && document.getElementById('color-swatches').innerHTML.includes('radio'))) {
+                return alert("Please select your Size and Color before proceeding.");
+            }
 
-            const formBox = document.getElementById('checkout-form-container');
-            formBox.style.display = 'block'; formBox.classList.add('smooth-fade'); 
+            // Change button state immediately
             const btn = document.getElementById('buy-now-btn');
-            btn.innerHTML = 'SCROLL DOWN ↓'; btn.classList.remove('btn-main'); btn.classList.add('btn-white'); btn.style.pointerEvents = 'none';
-            setTimeout(() => { formBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+            btn.innerHTML = 'SCROLL DOWN ↓';
+            btn.classList.remove('btn-main');
+            btn.classList.add('btn-white');
+            btn.style.pointerEvents = 'none';
+
+            let user = null;
+            try { user = JSON.parse(localStorage.getItem('step_user')); } catch (e) { console.error("Could not parse user from localStorage", e); }
+            
+            if (user) {
+                // User is logged in, show the checkout form
+                const formBox = document.getElementById('checkout-form-container');
+                formBox.style.display = 'block'; 
+                formBox.classList.add('smooth-fade'); 
+                setTimeout(() => { formBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+            } else {
+                // User is NOT logged in, show the login prompt
+                const loginPrompt = document.getElementById('login-prompt-container');
+                loginPrompt.style.display = 'block';
+                loginPrompt.classList.add('smooth-fade');
+                setTimeout(() => { loginPrompt.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+            }
         }
 
         function handleAddToCart() {
@@ -192,7 +206,7 @@
             cart.push({
                 id: document.getElementById('order-product-id').value,
                 name: document.getElementById('p-title').innerText,
-                price: parseInt(document.getElementById('order-final-price').value), // Uses the actual selling price, not crossed out price
+                price: parseInt(document.getElementById('order-final-price').value),
                 image: document.getElementById('main-view').src, 
                 size: sizeCheck ? sizeCheck.value : 'N/A',
                 color: colorCheck ? colorCheck.value : 'N/A'
@@ -200,8 +214,14 @@
             saveCart(cart);
 
             const btn = document.getElementById('add-cart-btn');
-            btn.innerHTML = 'ADDED TO BAG!'; btn.style.background = 'var(--secondary)'; btn.style.color = 'var(--black)';
-            setTimeout(() => { btn.innerHTML = `ADD TO BAG`; btn.style.background = 'white'; }, 1500);
+            btn.innerHTML = 'ADDED!';
+            btn.style.background = 'var(--secondary)'; 
+            btn.style.color = 'var(--black)';
+            setTimeout(() => { 
+                btn.innerHTML = `ADD TO BAG`; 
+                btn.style.background = 'white';
+                btn.style.color = 'var(--black)';
+            }, 1500);
         }
 
         async function placeOrder(e) {
@@ -213,7 +233,7 @@
                 product_id: document.getElementById('order-product-id').value,
                 customer_name: document.getElementById('c-name').value,
                 customer_email: document.getElementById('c-email').value,
-                customer_phone: document.getElementById('c-phone').value, // NOW SUBMITS PHONE NUMBER
+                customer_phone: document.getElementById('c-phone').value,
                 address: document.getElementById('c-address').value,
                 size_selected: sizeCheck ? sizeCheck.value : 'N/A',
                 color_selected: colorCheck ? colorCheck.value : 'N/A'
