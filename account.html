@@ -3,138 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S&S. | Shopping Cart</title>
+    <title>S&S. | Account Setup</title>
     <link rel="stylesheet" href="style.css">
-</head>
-<body onload="setupGlobal(); loadCartPage()">
+    <style>
+        /* --- Neubrutalist Slider Specific Styles --- */
+        .auth-wrapper {
+            max-width: 600px;
+            margin: 60px auto;
+            overflow: hidden; /* Contains the sliding track */
+        }
 
-    <!-- GLOBAL FULLSCREEN MENU OVERLAY -->
-    <div class="menu-overlay" id="menuOverlay">
-        <div class="menu-header"><div class="logo">S&S.</div><div class="close-btn" id="closeBtn">&times;</div></div>
-        <div class="menu-content">
-            <ul class="mobile-links"><li style="--i:1"><a href="mens.html">MENS</a></li><li style="--i:2"><a href="womens.html">WOMENS</a></li><li style="--i:3"><a href="kids.html">KIDS</a></li><li style="--i:4"><a href="contact.html">CONTACT</a></li></ul>
-        </div>
-    </div>
+        /* The Pill Toggle */
+        .auth-toggle {
+            display: flex;
+            position: relative;
+            border: var(--border);
+            margin-bottom: 30px;
+            background: white;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            cursor: pointer;
+        }
 
-    <div class="bottom-nav">
-        <div class="nav-item" id="menuBtn"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg><span>SHOP</span></div>
-        <a href="account.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>PROFILE</span></a>
-        <a href="index.html" class="dock-logo">S&S</a>
-        <a href="orders.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg><span>ORDERS</span></a>
-        <a href="cart.html" class="nav-item"><div class="cart-badge cart-count">0</div><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>CART</span></a>
-    </div>
+        .toggle-btn {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            z-index: 2;
+            transition: color 0.3s;
+            user-select: none;
+        }
 
-    <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-top: 30px;">
+        /* The Moving Background Block inside Toggle */
+        .toggle-slider {
+            position: absolute;
+            top: 0; left: 0;
+            width: 50%; height: 100%;
+            background: var(--purple); /* Default: Signup Color */
+            border-right: var(--border);
+            z-index: 1;
+            transition: transform 0.5s cubic-bezier(0.85, 0, 0.15, 1), background 0.5s;
+        }
+
+        /* The Sliding Form Track */
+        .forms-window {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .forms-track {
+            display: flex;
+            width: 200%; /* Holds two 100% wide forms */
+            transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+            align-items: flex-start;
+        }
+
+        .form-pane {
+            width: 49.7%; /* 50% of the 200% track = 100% of wrapper */
+            padding: 5px; /* Prevent shadow clipping */
+        }
+
+        /* --- ACTIVE STATES (When Login is selected) --- */
+        .auth-wrapper.is-login .toggle-slider {
+            transform: translateX(100%);
+            border-right: none;
+            border-left: var(--border);
+            background: var(--secondary); /* Login Color */
+        }
         
-        <div class="bento-card" style="background: white;">
-            <h1 style="margin-bottom: 20px;">YOUR BAG.</h1>
-            <div id="cart-items"></div>
-        </div>
+        .auth-wrapper.is-login .forms-track {
+            transform: translateX(-50%); /* Slide to the second form */
+        }
 
-        <div class="bento-card" style="background: var(--secondary); height: fit-content;" id="checkout-box">
-            <h2>SUMMARY</h2>
-            <h1 id="cart-total" style="font-size: 3rem; margin: 15px 0;">₹0</h1>
+        /* Responsive Form Row */
+        .form-row { display: flex; gap: 15px; }
+        @media (max-width: 600px) { .form-row { flex-direction: column; gap: 0; } }
+        
+        a{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body onload="setupGlobal()">
+
+    <!-- 3. UNIVERSAL FLOATING APP DOCK (Shows Everywhere) -->
+    <div class="bottom-nav">
+        <!-- Menu Trigger -->
+         <a href="index.html">
+        <div class="nav-item" id="menuBtn">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>HOME</span>
+        </div>
+</a>
+        <!-- Profile -->
+        <a href="account.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>PROFILE</span>
+        </a>
+
+        <!-- BRAND LOGO (Center Anchor) -->
+        <a href="index.html" class="dock-logo">S&S.</a>
+
+        <!-- Orders / Archive -->
+        <a href="orders.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>
+            <span>ORDERS</span>
+        </a>
+
+        <!-- Cart -->
+        <a href="cart.html" class="nav-item">
+            <div class="cart-badge cart-count">0</div>
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span>CART</span>
+        </a>
+    </div>
+    <!-- AUTHENTICATION SLIDER SYSTEM -->
+    <div class="container" id="auth-main">
+        <div class="auth-wrapper" id="authWrapper">
             
-            <div id="auth-gate" style="display: none;">
-                <p style="font-weight: 800; color: #ff4742; margin-bottom: 15px;">Please log in to complete your purchase.</p>
-                <a href="account.html" class="btn-main" style="display:block; text-align:center; width: 100%;">LOGIN / SIGNUP</a>
+            <!-- Custom Toggle Switch -->
+            <div class="auth-toggle">
+                <div class="toggle-slider" id="toggleSlider"></div>
+                <div class="toggle-btn" onclick="switchMode('signup')">JOIN CREW</div>
+                <div class="toggle-btn" onclick="switchMode('login')">WELCOME BACK</div>
             </div>
 
-            <form id="shipping-form" onsubmit="processCartCheckout(event)" style="display: block;">
-                <label>Full Name</label><input type="text" id="cc-name" required>
-                <label>Email</label><input type="email" id="cc-email" required>
-                <!-- NEW: PHONE INPUT FOR CART -->
-                <label>Phone Number</label><input type="tel" id="cc-phone" required placeholder="+91">
-                <label>Address</label><textarea id="cc-address" rows="3" required></textarea>
-                <button type="submit" class="btn-main" style="width: 100%; font-size: 1.2rem; padding: 20px;">SECURE CHECKOUT</button>
-            </form>
+            <!-- Sliding Track -->
+            <div class="forms-window">
+                <div class="forms-track">
+                    
+                    <!-- PANE 1: SIGN UP -->
+                    <div class="form-pane">
+                        <div class="bento-card" style="background: var(--purple);">
+                            <h1 style="font-size: 2.5rem; margin-bottom: 5px;">BECOME A MEMBER.</h1>
+                            <p style="margin-bottom: 25px; font-weight:600;">Early access to drops. Member only pricing.</p>
+                            
+                            <form onsubmit="handleSignup(event)">
+                                <div class="form-row">
+                                    <div style="flex: 1;"><label>First Name</label><input type="text" id="reg-fn" required></div>
+                                    <div style="flex: 1;"><label>Last Name</label><input type="text" id="reg-ln" required></div>
+                                </div>
+                                <label>Email Address</label><input type="email" id="reg-em" required>
+                                <label>Phone Number</label><input type="tel" id="reg-ph">
+                                <label>Create Password</label><input type="password" id="reg-pass" required minlength="6">
+                                <button type="submit" class="btn-main" style="width: 100%; font-size: 1.1rem;">CREATE ACCOUNT</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- PANE 2: LOG IN -->
+                    <div class="form-pane">
+                        <div class="bento-card" style="background: var(--secondary);">
+                            <h1 style="font-size: 2.5rem; margin-bottom: 5px;">ACCESS GRANTED.</h1>
+                            <p style="margin-bottom: 25px; font-weight:600;">Log in to access your dashboard and orders.</p>
+                            
+                            <form onsubmit="handleLogin(event)">
+                                <label>Email Address</label>
+                                <input type="email" id="log-em" required>
+                                <label>Password</label>
+                                <input type="password" id="log-pass" required>
+                                <button type="submit" class="btn-main" style="width: 100%; font-size: 1.1rem; background: white; color: black;">ENTER THE VAULT</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
     <script>
-        function loadCartPage() {
-            const cart = getCart();
-            const container = document.getElementById('cart-items');
-            
-            // FIXED THE USER KEY TO MATCH REST OF APP
-            const user = JSON.parse(localStorage.getItem('step_user'));
+        // Check if user is already logged in securely
+        const currentUser = JSON.parse(localStorage.getItem('step_user'));
+        if(currentUser) {
+            document.getElementById('auth-main').innerHTML = `
+                <div class="bento-card" style="max-width: 600px; margin: 100px auto; text-align:center; background: var(--secondary);">
+                    <h1>WELCOME BACK, ${currentUser.name.toUpperCase()}.</h1>
+                    <p style="margin: 20px 0; font-weight: 600;">You are fully authenticated and locked in.</p>
+                    <a href="index.html" class="btn-main">RETURN TO STREETS</a>
+                </div>`;
+        }
 
-            // GATEKEEPER LOGIC
-            if (!user) {
-                document.getElementById('shipping-form').style.display = 'none';
-                document.getElementById('auth-gate').style.display = 'block';
+        // Handle Slider UI Logic
+        function switchMode(mode) {
+            const wrapper = document.getElementById('authWrapper');
+            if(mode === 'login') {
+                wrapper.classList.add('is-login');
             } else {
-                document.getElementById('cc-name').value = user.name || '';
-                document.getElementById('cc-email').value = user.email || '';
+                wrapper.classList.remove('is-login');
             }
+        }
 
-            if(cart.length === 0) {
-                container.innerHTML = '<p style="font-weight: 800; color: var(--accent);">Your bag is empty. Hit the streets and find your fit.</p>';
+        // Supabase Auth Integration
+        async function handleLogin(e) {
+            e.preventDefault();
+            const em = document.getElementById('log-em').value;
+            const pass = document.getElementById('log-pass').value;
+            
+            // Query Supabase
+            const users = await api(`site_users?email=eq.${em}&password=eq.${pass}`);
+            
+            if(users.length > 0) {
+                localStorage.setItem('step_user', JSON.stringify({ email: em, name: users[0].first_name }));
+                window.location.href = 'index.html';
+            } else {
+                alert('Invalid Email or Password. Please try again.');
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const em = document.getElementById('reg-em').value;
+            const pass = document.getElementById('reg-pass').value;
+            
+            // Validate if email already exists
+            const existing = await api(`site_users?email=eq.${em}`);
+            if(existing.length > 0) {
+                alert('Email already registered. Switching to Login...');
+                switchMode('login'); // Automatically slide them to the login screen!
+                document.getElementById('log-em').value = em; // Pre-fill email
                 return;
             }
 
-            let total = 0;
-            container.innerHTML = cart.map((item, index) => {
-                total += item.price;
-                return `
-                <div style="display:flex; gap:15px; margin-bottom: 20px; border: var(--border); padding: 15px; border-radius: 12px; box-shadow: 4px 4px 0px var(--black); animation: pageFadeIn 0.4s ease forwards;">
-                    <img src="${item.image}" style="width: 80px; height: 100px; object-fit: cover; border-radius: 8px;">
-                    <div style="flex:1;">
-                        <h3>${item.name}</h3>
-                        <p style="font-weight:800; color:var(--accent);">₹${item.price.toLocaleString('en-IN')}</p>
-                        <p style="font-size:12px; font-weight:600; margin-top:5px;">EURO ${item.size} | Color: ${item.color}</p>
-                        <button type="button" onclick="removeFromCart(${index})" style="margin-top:10px; background:none; border:none; color:red; font-weight:800; cursor:pointer;">REMOVE</button>
-                    </div>
-                </div>`;
-            }).join('');
-            
-            document.getElementById('cart-total').innerText = `₹${total.toLocaleString('en-IN')}`;
-        }
-
-        function removeFromCart(index) {
-            let cart = getCart();
-            cart.splice(index, 1);
-            saveCart(cart);
-            loadCartPage(); // Re-render page
-        }
-
-        async function processCartCheckout(e) {
-            e.preventDefault();
-            const cart = getCart();
-            const user = JSON.parse(localStorage.getItem('step_user')); // FIXED KEY
-            if (!user) return alert("Please log in first!");
-            if(cart.length === 0) return alert("Cart is empty!");
-
-            const orderData = {
-                customer_name: document.getElementById('cc-name').value,
-                customer_email: document.getElementById('cc-email').value,
-                customer_phone: document.getElementById('cc-phone').value, // NOW SUBMITS PHONE
-                address: document.getElementById('cc-address').value,
-                status: 'Ordered'
+            const user = { 
+                first_name: document.getElementById('reg-fn').value, 
+                last_name: document.getElementById('reg-ln').value, 
+                email: em, 
+                phone: document.getElementById('reg-ph').value,
+                password: pass
             };
-
-            for(let item of cart) {
-                await api('orders', 'POST', {
-                    ...orderData,
-                    product_id: item.id,
-                    size_selected: item.size,
-                    color_selected: item.color
-                });
-            }
-
-            // Clear the cart securely
-            saveCart([]); 
             
-            // Show Success UI
-            document.body.innerHTML = `
-                <div class="container" style="display:flex; justify-content:center; align-items:center; min-height:80vh;">
-                    <div class="bento-card smooth-fade" style="text-align:center; background:var(--purple); width: 100%; max-width: 600px;">
-                        <h1 style="font-size:clamp(3rem, 6vw, 5rem);">ORDER SECURED.</h1>
-                        <p style="font-size: 1.2rem; margin: 20px 0; font-weight: 600;">Your gear is being prepped for dispatch.</p>
-                        <a href="orders.html" class="btn-main">VIEW ARCHIVE</a>
-                    </div>
-                </div>`;
+            await api('site_users', 'POST', user);
+            
+            // Auto Login and Route to Home
+            localStorage.setItem('step_user', JSON.stringify({ email: em, name: user.first_name }));
+            window.location.href = 'index.html';
         }
     </script>
 </body>
